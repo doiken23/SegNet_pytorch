@@ -26,24 +26,16 @@ parser.add_argument('--batch-size', type=int, default=10, help='input batch size
 parser.add_argument('--epochs', type=int, default=300, help='number of the epoch to train (default:300)')
 parser.add_argument('--lr', type=float, default=0.01, help='learning rate for training (default:0.01)')
 parser.add_argument('--momentum', type=int, default=10, help='SGD momentum (default:10)')
-parser.add_argument('train_data_path', type=str, help='the path of training data directory (npy)')
-parser.add_argument('validation_data_path', type=str, help='the path of validation data directory (npy)')
+parser.add_argument('image_tensor_path', type=str, help='the path of image directory (npy)')
+parser.add_argument('GT_tensor_path', type=str, help='the path of GT directory (npy)')
 args = parser.parse_args()
 
-
 # Loading the dataset
-for i, npy in enumerate(train_data_list):
-    data = np.load(npy)
-    train_feature_tensor[i,:,:,:] = torch.from_numpy(data)
-
-for i, npy in enumerate(validation_data_list):
-    data = np.load(npy)
-    train_GT_tensor[i,:,:,:] = torch.from_numpy(data)
-
-# convert the dataset to DataLoader
-train = data_utils.TensorDataset(train_feature_tensor, train_GT_tensor)
-train_loader = data_utils.DataLoader(train, barch_size=10, shuffle=True)
-
+image_tensor = torch.load(args.image_tensor_path)
+GT_tensor = torch.load(args.GT_tensor_path)
+train = data_utils.TensorDataset(image_tensor, GT_tensor)
+train_loader = data_utils.DataLoader(train, batch_size=10, shuffle=True)
+print("Complete the preparing dataset")
 
 # Define a Loss function and optimizer
 net = segnet.SegNet()
