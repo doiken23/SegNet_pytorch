@@ -21,12 +21,13 @@ import time
 import os
 import argparse
 from tqdm import tqdm
+import datetime
 
 def get_argument():
     # get the argment
     parser = argparse.ArgumentParser(description='Pytorch SegNet')
     parser.add_argument('--batch-size', type=int, default=10, help='input batch size for training (default:10)')
-    parser.add_argument('--epochs', type=int, default=60, help='number of the epoch to train (default:300)')
+    parser.add_argument('--epochs', type=int, default=60, help='number of the epoch to train (default:60)')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate for training (default:0.01)')
     parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum (default:0.9)')
     parser.add_argument('image_dir_path', type=str, help='the path of image directory (npy)')
@@ -83,6 +84,10 @@ def main(args):
     best_model_wts = net.state_dict()
     best_acc = 0.0
 
+    # initialize the loss and accuracy history
+    loss_history = {"train": [], "val":[] }
+    acc_history = {"train": [], "val":[] }
+
     # Train the network
     start_time = time.time()
     for epoch in range(args.epochs):
@@ -131,6 +136,8 @@ def main(args):
 
             epoch_loss = running_loss / dataset_sizes[phase] 
             epoch_acc = running_corrects / dataset_sizes[phase] / (640*640)
+            loss_history[phase].append(epoch_loss)
+            acc_history[phase].append(epoch_acc)
 
             print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
 
@@ -140,14 +147,19 @@ def main(args):
                 best_model_wts = net.state_dict()
 
     elapsed_time = time.time() - start
-    print('Training complete in {:.0f}m {:.0f}s'.format(elapsed_time // 60, elapsed_time % 60))
+    print('Training complete in {:.0f}m {:.0f}s'.format(elapsed_time // args.epochs, elapsed_time % args.epochs))
     print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
     net.load_state_dict(best_model_wts)
-    return(net)
+    return net, loss_history, acc_history
 
 if __name__ == '__main__':
     args = get_argument()
-    model_weights = main(args)
+    model_weights, loss_history, acc_history = main(args)
     torch.save(model_weights.state_dict(), args.out_path)
+    training_history = numpy.zeros(4, args.epochs)
+    for phase in enumerate(["train", "val"]):
+        training_history[i] = loss_history[phase]
+        training_history[i+2] = acc_history[phase]
+    np.save('./training_history_{}.npy'.format(datetime.date.today()), training_history)
