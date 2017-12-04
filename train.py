@@ -30,7 +30,7 @@ def get_argument():
     parser.add_argument('--epochs', type=int, default=60, help='number of the epoch to train (default:60)')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate for training (default:0.01)')
     parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum (default:0.9)')
-    parser.add_argument('calss_num', type=int, help='number of class')
+    parser.add_argument('class_num', type=int, help='number of class')
     parser.add_argument('image_dir_path', type=str, help='the path of image directory (npy)')
     parser.add_argument('GT_dir_path', type=str, help='the path of GT directory (npy)')
     parser.add_argument('pretrained_model_path', type=str, default=None, help='the path of pretrained model')
@@ -71,7 +71,7 @@ def main(args):
     print("Complete the preparing dataset")
 
     # Define a Loss function and optimizer
-    net = segnet.SegNet(3, class_num)
+    net = segnet.SegNet(3, args.class_num)
     if not args.pretrained_model_path:
         print('load the pretraind mpodel.')
         th = torch.load(args.pretrained_model_path).state_dict()
@@ -121,7 +121,7 @@ def main(args):
 
                 # forward
                 outputs = net(inputs)
-                outputs = outputs.permute(0,2,3,1).contiguous().view(-1, 5).squeeze()
+                outputs = outputs.permute(0,2,3,1).contiguous().view(-1, args.class_num).squeeze()
                 _, preds = torch.max(outputs.data, 1)
                 labels = labels.view(-1).squeeze().long()
                 loss = criterion(outputs, labels.view(-1).squeeze())
