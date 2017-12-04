@@ -30,6 +30,7 @@ def get_argument():
     parser.add_argument('--epochs', type=int, default=60, help='number of the epoch to train (default:60)')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate for training (default:0.01)')
     parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum (default:0.9)')
+    parser.add_argument('calss_num', type=int, help='number of class')
     parser.add_argument('image_dir_path', type=str, help='the path of image directory (npy)')
     parser.add_argument('GT_dir_path', type=str, help='the path of GT directory (npy)')
     parser.add_argument('pretrained_model_path', type=str, default=None, help='the path of pretrained model')
@@ -70,7 +71,7 @@ def main(args):
     print("Complete the preparing dataset")
 
     # Define a Loss function and optimizer
-    net = segnet.SegNet(3, 5)
+    net = segnet.SegNet(3, class_num)
     if not args.pretrained_model_path:
         print('load the pretraind mpodel.')
         th = torch.load(args.pretrained_model_path).state_dict()
@@ -146,7 +147,7 @@ def main(args):
                 best_acc = epoch_acc
                 best_model_wts = net.state_dict()
 
-    elapsed_time = time.time() - start
+    elapsed_time = time.time() - start_time
     print('Training complete in {:.0f}m {:.0f}s'.format(elapsed_time // args.epochs, elapsed_time % args.epochs))
     print('Best val Acc: {:4f}'.format(best_acc))
 
@@ -158,8 +159,8 @@ if __name__ == '__main__':
     args = get_argument()
     model_weights, loss_history, acc_history = main(args)
     torch.save(model_weights.state_dict(), args.out_path)
-    training_history = numpy.zeros(4, args.epochs)
-    for phase in enumerate(["train", "val"]):
+    training_history = np.zeros((4, args.epochs))
+    for i, phase in enumerate(["train", "val"]):
         training_history[i] = loss_history[phase]
         training_history[i+2] = acc_history[phase]
     np.save('./training_history_{}.npy'.format(datetime.date.today()), training_history)
