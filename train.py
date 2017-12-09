@@ -2,6 +2,9 @@
 ###### This script is made by Doi Kento.
 ###### University of Tokyo
 ########################################
+# add the module path
+import sys
+sys.path.append('../pytorch_toolbox/')
 
 # import torch module
 import torch
@@ -13,6 +16,7 @@ from torch.optim import lr_scheduler
 from torch.autograd import Variable
 from torchvision import models, datasets
 import segnet
+from torchvision import transforms
 
 # import python module
 import numpy as np
@@ -22,11 +26,12 @@ import os
 import argparse
 from tqdm import tqdm
 import datetime
+from numpy_loader import *
 
 def get_argument():
     # get the argment
     parser = argparse.ArgumentParser(description='Pytorch SegNet')
-    parser.add_argument('--batch-size', type=int, default=10, help='input batch size for training (default:10)')
+    parser.add_argument('--batch_size', type=int, default=2, help='input batch size for training (default:10)')
     parser.add_argument('--epochs', type=int, default=60, help='number of the epoch to train (default:60)')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate for training (default:0.01)')
     parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum (default:0.9)')
@@ -38,32 +43,13 @@ def get_argument():
     args = parser.parse_args()
     return args
 
-class Numpy_Dataset(data_utils.Dataset):
-    def __init__(self, img_dir, GT_dir):
-        self.img_dir = img_dir
-        self.GT_dir = GT_dir
-        self.img_list = [os.path.join(img_dir, img_path) for img_path in os.listdir(img_dir)]
-        self.GT_list = [os.path.join(GT_dir, GT_path) for GT_path in os.listdir(GT_dir)]
-        self.img_list.sort()
-        self.GT_list.sort()
-
-    def __getitem__(self, idx):
-        img_path = self.img_list[idx]
-        GT_path = self.GT_list[idx]
-        image_arr = np.load(img_path)
-        GT_arr = np.load(GT_path)
-
-        return image_arr, GT_arr
-
-    def __len__(self):
-        return len(self.img_list)
-
 
 def main(args):
     # Loading the dataset
-    train_dataset = Numpy_Dataset(os.path.join(args.image_dir_path, 'train'), os.path.join(args.GT_dir_path, 'train'))
-    val_dataset = Numpy_Dataset(os.path.join(args.image_dir_path, 'val'), os.path.join(args.GT_dir_path, 'val'))
-    train_loader = data_utils.DataLoader(train_dataset, batch_size=2, shuffle=True, num_workers=2)
+    trans = transforms.Compose([RandomCrop_Segmentation(640), Flip_Segmentation(), Rotate_Segmentation()])
+    train_dataset = Numpy_SegmentationDataset(os.path.join(args.image_dir_path, 'train'), os.path.join(args.GT_dir_path, 'train'), transform=trans)
+    val_dataset = Numpy_SegmentationDataset(os.path.join(args.image_dir_path, 'val'), os.path.join(args.GT_dir_path, 'val'))
+    train_loader = data_utils.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=2)
     val_loader = data_utils.DataLoader(val_dataset, batch_size=1, shuffle=True, num_workers=1)
     loaders = {'train': train_loader, 'val': val_loader}
     dataset_sizes = {'train': len(train_dataset), 'val': len(val_dataset)}
