@@ -35,10 +35,11 @@ def get_argument():
     parser.add_argument('--epochs', type=int, default=60, help='number of the epoch to train (default:60)')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate for training (default:0.01)')
     parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum (default:0.9)')
+    parser.add_argument('--band_num', type=int, default=3, help='number of band (default:3)')
     parser.add_argument('class_num', type=int, help='number of class')
     parser.add_argument('image_dir_path', type=str, help='the path of image directory (npy)')
     parser.add_argument('GT_dir_path', type=str, help='the path of GT directory (npy)')
-    parser.add_argument('pretrained_model_path', type=str, default=None, help='the path of pretrained model')
+    parser.add_argument('--pretrained_model_path', type=str, default=None, help='the path of pretrained model')
     parser.add_argument('--out_path', type=str, default='./weight.pth', help='output weight path')
     args = parser.parse_args()
     return args
@@ -47,8 +48,11 @@ def get_argument():
 def main(args):
     # Loading the dataset
     trans = transforms.Compose([RandomCrop_Segmentation(640), Flip_Segmentation(), Rotate_Segmentation()])
+    GT_trans = RandomCrop_Segmentation(640)
+
     train_dataset = Numpy_SegmentationDataset(os.path.join(args.image_dir_path, 'train'), os.path.join(args.GT_dir_path, 'train'), transform=trans)
-    val_dataset = Numpy_SegmentationDataset(os.path.join(args.image_dir_path, 'val'), os.path.join(args.GT_dir_path, 'val'))
+    val_dataset = Numpy_SegmentationDataset(os.path.join(args.image_dir_path, 'val'), os.path.join(args.GT_dir_path, 'val'), transform=GT_trans)
+
     train_loader = data_utils.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=2)
     val_loader = data_utils.DataLoader(val_dataset, batch_size=1, shuffle=True, num_workers=1)
     loaders = {'train': train_loader, 'val': val_loader}
@@ -57,8 +61,8 @@ def main(args):
     print("Complete the preparing dataset")
 
     # Define a Loss function and optimizer
-    net = segnet.SegNet(3, args.class_num)
-    if not args.pretrained_model_path:
+    net = segnet.SegNet(args.band_num , args.class_num)
+    if args.pretrained_model_path:
         print('load the pretraind mpodel.')
         th = torch.load(args.pretrained_model_path).state_dict()
         net.load_state_dict(th)
