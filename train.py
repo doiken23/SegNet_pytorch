@@ -64,7 +64,7 @@ def main(args):
     net = segnet.SegNet(args.band_num , args.class_num)
     if args.pretrained_model_path:
         print('load the pretraind mpodel.')
-        th = torch.load(args.pretrained_model_path).state_dict()
+        th = torch.load(args.pretrained_model_path)
         net.load_state_dict(th)
     net.cuda()
 
