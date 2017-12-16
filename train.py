@@ -68,7 +68,7 @@ def main(args):
         net.load_state_dict(th)
     net.cuda()
 
-    criterion = nn.CrossEntropyLoss(size_average=True).cuda()
+    criterion = nn.NLLLoss2d(size_average=True).cuda()
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
 
     # initialize the best accuracy and best model weights
@@ -111,10 +111,7 @@ def main(args):
 
                 # forward
                 outputs = net(inputs)
-                outputs = outputs.permute(0,2,3,1).contiguous().view(-1, args.class_num).squeeze()
-                _, preds = torch.max(outputs.data, 1)
-                labels = labels.view(-1).squeeze().long()
-                loss = criterion(outputs, labels.view(-1).squeeze())
+                loss = criterion(F.log_softmax(outputs), labels)
 
                 # backward + optimize if in training phase
                 if phase == 'train':
