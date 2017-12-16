@@ -125,11 +125,3 @@ class SegNet(nn.Module):
         x1_1_d = self.conv1_1_d(x1_2_d)
 
         return x1_1_d
-
-
-    def load_from_segnet(self, model_path):
-        s_dict = self.state_dict()# create a copy of the state dict
-        th = torch.load(model_path).state_dict() # load the weigths
-        # for name in th:
-            # s_dict[corresp_name[name]] = th[name]
-        self.load_state_dict(th)

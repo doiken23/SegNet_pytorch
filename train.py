@@ -40,7 +40,7 @@ def get_argument():
     parser.add_argument('image_dir_path', type=str, help='the path of image directory (npy)')
     parser.add_argument('GT_dir_path', type=str, help='the path of GT directory (npy)')
     parser.add_argument('--pretrained_model_path', type=str, default=None, help='the path of pretrained model')
-    parser.add_argument('--out_path', type=str, default='./weight.pth', help='output weight path')
+    parser.add_argument('out_path', type=str, help='output weight path')
     args = parser.parse_args()
     return args
 
@@ -64,7 +64,7 @@ def main(args):
     net = segnet.SegNet(args.band_num , args.class_num)
     if args.pretrained_model_path:
         print('load the pretraind mpodel.')
-        th = torch.load(args.pretrained_model_path).state_dict()
+        th = torch.load(args.pretrained_model_path)
         net.load_state_dict(th)
     net.cuda()
 
@@ -145,7 +145,7 @@ def main(args):
 if __name__ == '__main__':
     args = get_argument()
     model_weights, loss_history, acc_history = main(args)
-    torch.save(model_weights.state_dict(), args.out_path)
+    torch.save(model_weights.state_dict(), args.out_path + 'weight.pth')
     training_history = np.zeros((4, args.epochs))
     for i, phase in enumerate(["train", "val"]):
         training_history[i] = loss_history[phase]
