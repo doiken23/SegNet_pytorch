@@ -104,13 +104,16 @@ def main(args):
                 inputs = inputs / 255.0
 
                 # wrap the in valiables
-                inputs, labels = Variable(inputs.cuda()), Variable(labels.cuda())
+                inputs, labels = Variable(inputs.cuda()), Variable(labels.long().cuda())
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
 
                 # forward
                 outputs = net(inputs)
+                _, preds = torch.max(outputs.data, 1)
+                c, b, h, w = labels.size()
+                labels = labels.view(c,h,w)
                 loss = criterion(F.log_softmax(outputs), labels)
 
                 # backward + optimize if in training phase
