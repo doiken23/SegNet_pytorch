@@ -70,6 +70,7 @@ def main(args):
 
     criterion = nn.NLLLoss2d(size_average=True).cuda()
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, 60)
 
     # initialize the best accuracy and best model weights
     best_model_wts = net.state_dict()
@@ -82,6 +83,7 @@ def main(args):
     # Train the network
     start_time = time.time()
     for epoch in range(args.epochs):
+        scheduler.step()
         print('* ' * 20)
         print('Epoch {}/{}'.format(epoch+1, args.epochs))
         print('* ' * 20)
