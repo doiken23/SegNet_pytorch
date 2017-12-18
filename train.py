@@ -1,7 +1,7 @@
-########################################
-###### This script is made by Doi Kento.
-###### University of Tokyo
-########################################
+#############################################
+###### This script is made by Doi Kento #####
+###### University of Tokyo              #####
+#############################################
 # add the module path
 import sys
 sys.path.append('../pytorch_toolbox/')
@@ -31,10 +31,11 @@ from numpy_loader import *
 def get_argument():
     # get the argment
     parser = argparse.ArgumentParser(description='Pytorch SegNet')
-    parser.add_argument('--batch_size', type=int, default=2, help='input batch size for training (default:10)')
+    parser.add_argument('--batch_size', type=int, default=2, help='input batch size for training (default:2)')
     parser.add_argument('--epochs', type=int, default=60, help='number of the epoch to train (default:60)')
     parser.add_argument('--lr', type=float, default=0.01, help='learning rate for training (default:0.01)')
     parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum (default:0.9)')
+    parser.add_argument('--weight_decay', type=float, default=0.0005, help='weight decay (default:0.0005)')
     parser.add_argument('--band_num', type=int, default=3, help='number of band (default:3)')
     parser.add_argument('class_num', type=int, help='number of class')
     parser.add_argument('image_dir_path', type=str, help='the path of image directory (npy)')
@@ -69,7 +70,7 @@ def main(args):
     net.cuda()
 
     criterion = nn.NLLLoss2d(size_average=True).cuda()
-    optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
+    optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.StepLR(optimizer, 60)
 
     # initialize the best accuracy and best model weights
