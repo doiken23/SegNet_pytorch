@@ -148,9 +148,9 @@ def main(args):
 if __name__ == '__main__':
     args = get_argument()
     model_weights, loss_history, acc_history = main(args)
-    torch.save(model_weights.state_dict(), args.out_path + 'weight.pth')
+    torch.save(model_weights.state_dict(), args.out_path + '/weight.pth')
     training_history = np.zeros((4, args.epochs))
     for i, phase in enumerate(["train", "val"]):
         training_history[i] = loss_history[phase]
         training_history[i+2] = acc_history[phase]
-    np.save('./training_history_{}.npy'.format(datetime.date.today()), training_history)
+    np.save(args.out_path + '/training_history_{}.npy'.format(datetime.date.today()), training_history)
