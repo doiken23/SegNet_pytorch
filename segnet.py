@@ -7,7 +7,7 @@ from collections import OrderedDict
 
 
 class SegNet(nn.Module):
-    def __init__(self, input_number, label_number):
+    def __init__(self, input_number, label_number, dropout_ratio):
         # initialization of class 
         super(SegNet, self).__init__()
 
@@ -74,7 +74,7 @@ class SegNet(nn.Module):
         self.bachnorm1_2_d=nn.BatchNorm2d(num_features=64)
         self.conv1_1_d=nn.Conv2d(64, label_number, kernel_size=3, stride=1, padding=1)
 
-        self.dropout = nn.Dropout2d()
+        self.dropout = nn.Dropout2d(p=dropout_ratio)
 
     def forward(self, x):
         # define the forward network
