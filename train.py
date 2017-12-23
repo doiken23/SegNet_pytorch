@@ -37,6 +37,7 @@ def get_argument():
     parser.add_argument('--momentum', type=float, default=0.9, help='SGD momentum (default:0.9)')
     parser.add_argument('--weight_decay', type=float, default=0.0005, help='weight decay (default:0.0005)')
     parser.add_argument('--band_num', type=int, default=3, help='number of band (default:3)')
+    parser.add_argument('--dropout_ratio', type=float, default=0, help='drop out ratio (default:0)')
     parser.add_argument('class_num', type=int, help='number of class')
     parser.add_argument('image_dir_path', type=str, help='the path of image directory (npy)')
     parser.add_argument('GT_dir_path', type=str, help='the path of GT directory (npy)')
@@ -62,9 +63,9 @@ def main(args):
     print("Complete the preparing dataset")
 
     # Define a Loss function and optimizer
-    net = segnet.SegNet(args.band_num , args.class_num)
+    net = segnet.SegNet(args.band_num , args.class_num, args.dropout_ratio)
     if args.pretrained_model_path:
-        print('load the pretraind mpodel.')
+        print('load the pretraind model.')
         th = torch.load(args.pretrained_model_path)
         net.load_state_dict(th)
     net.cuda()
@@ -115,9 +116,9 @@ def main(args):
                 # forward
                 outputs = net(inputs)
                 _, preds = torch.max(outputs.data, 1)
-                c, b, h, w = labels.size()
-                labels = labels.view(c,h,w)
-                loss = criterion(F.log_softmax(outputs), labels)
+                n, c, h, w = labels.size()
+                labels = labels.view(n,h,w)
+                loss = criterion(F.log_softmax(outputs, dim=1), labels)
 
                 # backward + optimize if in training phase
                 if phase == 'train':
