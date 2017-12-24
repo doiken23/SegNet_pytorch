@@ -17,6 +17,8 @@ from torch.autograd import Variable
 from torchvision import models, datasets
 import segnet
 from torchvision import transforms
+from numpy_loader import *
+from crossentropy2d import CrossEntropy2d
 
 # import python module
 import numpy as np
@@ -26,7 +28,6 @@ import os
 import argparse
 from tqdm import tqdm
 import datetime
-from numpy_loader import *
 
 def get_argument():
     # get the argment
@@ -42,6 +43,7 @@ def get_argument():
     parser.add_argument('image_dir_path', type=str, help='the path of image directory (npy)')
     parser.add_argument('GT_dir_path', type=str, help='the path of GT directory (npy)')
     parser.add_argument('--pretrained_model_path', type=str, default=None, help='the path of pretrained model')
+    parser.add_argument('--weight', type=str, default=None, help='class balancing weight')
     parser.add_argument('out_path', type=str, help='output weight path')
     args = parser.parse_args()
     return args
@@ -50,10 +52,10 @@ def get_argument():
 def main(args):
     # Loading the dataset
     trans = transforms.Compose([RandomCrop_Segmentation(640), Flip_Segmentation(), Rotate_Segmentation()])
-    GT_trans = RandomCrop_Segmentation(640)
+    val_trans = RandomCrop_Segmentation(640)
 
     train_dataset = Numpy_SegmentationDataset(os.path.join(args.image_dir_path, 'train'), os.path.join(args.GT_dir_path, 'train'), transform=trans)
-    val_dataset = Numpy_SegmentationDataset(os.path.join(args.image_dir_path, 'val'), os.path.join(args.GT_dir_path, 'val'), transform=GT_trans)
+    val_dataset = Numpy_SegmentationDataset(os.path.join(args.image_dir_path, 'val'), os.path.join(args.GT_dir_path, 'val'), transform=val_trans)
 
     train_loader = data_utils.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=2)
     val_loader = data_utils.DataLoader(val_dataset, batch_size=1, shuffle=True, num_workers=1)
@@ -62,7 +64,14 @@ def main(args):
     
     print("Complete the preparing dataset")
 
-    # Define a Loss function and optimizer
+    # Loading the class balancing weight
+    if args.weight is not None:
+        weight = np.load(args.weight)
+        weight = torch.from_numpy(weight)
+    else:
+        weight = None
+
+    # Setting the networl
     net = segnet.SegNet(args.band_num , args.class_num, args.dropout_ratio)
     if args.pretrained_model_path:
         print('load the pretraind model.')
@@ -70,7 +79,8 @@ def main(args):
         net.load_state_dict(th)
     net.cuda()
 
-    criterion = nn.NLLLoss2d(size_average=True).cuda()
+    # Define a Loss function and optimizer
+    criterion = CrossEntropy2d(weight=weight).cuda()
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
     scheduler = optim.lr_scheduler.StepLR(optimizer, 60)
 
@@ -118,7 +128,7 @@ def main(args):
                 _, preds = torch.max(outputs.data, 1)
                 n, c, h, w = labels.size()
                 labels = labels.view(n,h,w)
-                loss = criterion(F.log_softmax(outputs, dim=1), labels)
+                loss = criterion(outputs, labels)
 
                 # backward + optimize if in training phase
                 if phase == 'train':
