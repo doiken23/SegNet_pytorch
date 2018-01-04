@@ -84,7 +84,7 @@ def main(args):
     # Define a Loss function and optimizer
     criterion = FocalLoss2d(gamma=args.gamma, weight=weight).cuda()
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, 60)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, 90)
 
     # initialize the best accuracy and best model weights
     best_model_wts = net.state_dict()
