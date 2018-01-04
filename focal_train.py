@@ -120,7 +120,11 @@ def main(args):
                 inputs = inputs / 255.0
 
                 # wrap the in valiables
-                inputs, labels = Variable(inputs.cuda()), Variable(labels.long().cuda())
+                if phase == 'train':
+                    inputs, labels = Variable(inputs.cuda()), Variable(labels.long().cuda())
+                else:
+                    inputs = Variable(inputs.cuda(), volatile=True)
+                    labels = Variable(labels.long().cuda())
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
