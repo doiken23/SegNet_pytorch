@@ -82,7 +82,7 @@ def main(args):
     # Define a Loss function and optimizer
     criterion = CrossEntropy2d(weight=weight).cuda()
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, 60)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, 90)
 
     # initialize the best accuracy and best model weights
     best_model_wts = net.state_dict()
@@ -152,7 +152,7 @@ def main(args):
                 best_model_wts = net.state_dict()
 
     elapsed_time = time.time() - start_time
-    print('Training complete in {:.0f}m {:.0f}s'.format(elapsed_time // args.epochs, elapsed_time % args.epochs))
+    print('Training complete in {:.0f}m {:.0f}s'.format(elapsed_time // 60, elapsed_time % 60))
     print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
