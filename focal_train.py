@@ -158,7 +158,7 @@ def main(args):
                 best_model_wts = net.state_dict()
 
     elapsed_time = time.time() - start_time
-    print('Training complete in {:.0f}m {:.0f}s'.format(elapsed_time // args.epochs, elapsed_time % args.epochs))
+    print('Training complete in {:.0f}m {:.0f}s'.format(elapsed_time // 60, elapsed_time % 60))
     print('Best val Acc: {:4f}'.format(best_acc))
 
     # load best model weights
