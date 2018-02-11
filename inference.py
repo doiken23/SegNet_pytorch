@@ -90,8 +90,8 @@ def do_inference(net, image_path, band_num, class_num, w_size, ol, out_dir):
 
     # do inference (main loop)
     print('***** start inference *****')
-    for i in tqdm(np.arange(Y)):
-        for j in np.arange(X):
+    for i in tqdm(np.arange(Y+1)):
+        for j in np.arange(X+1):
             y = (w_size-ol) * i
             x = (w_size-ol) * j
             input = input_tensor[:, y: y+w_size, x: x+w_size]
