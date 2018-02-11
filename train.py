@@ -67,7 +67,7 @@ def main(args):
     # Loading the class balancing weight
     if args.weight is not None:
         weight = np.load(args.weight)
-        weight = torch.from_numpy(weight)
+        weight = torch.from_numpy(weight).float()
     else:
         weight = None
 
