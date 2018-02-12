@@ -99,13 +99,13 @@ def do_inference(net, image_path, band_num, class_num, w_size, ol, out_dir):
             output_tensor[:, y: y+w_size, x: x+w_size] = torch.add(output_tensor[:, y: y+w_size, x: x+w_size], output.data.squeeze())
 
     # make and save inferenced image
-    confidence_tensor = F.softmax(output_tensor).squeeze()
+    confidence_tensor = F.softmax(Variable(output_tensor)).squeeze()
     confidence_map, label_map = torch.max(confidence_tensor[:, 0:h, 0:w], 0)
     confidence_map = confidence_map.data.cpu().numpy()
     label_map = label_map.data.cpu().numpy().astype(np.uint8)
 
-    np.save(os.path.join(out_dir, image_path.split('\\')[-1][:-4] + '_confidence'), confidence_map)
-    Image.fromarray(label_map).save(os.path.join(out_dir, image_path.split('\\')[-1][:-4] + '_inferenced_label.png'))
+    np.save(os.path.join(out_dir, image_path.split('/')[-1][:-4] + '_confidence'), confidence_map)
+    Image.fromarray(label_map).save(os.path.join(out_dir, image_path.split('/')[-1][:-4] + '_inferenced_label.png'))
 
 # ------------------- #
 # main program
